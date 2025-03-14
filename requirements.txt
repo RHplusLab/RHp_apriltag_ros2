@@ -1,0 +1,5 @@
+apriltag
+pyrealsense2
+numpy
+opencv-python
+matplotlib
