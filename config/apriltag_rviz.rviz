@@ -1,0 +1,11 @@
+Visualization Manager:
+  Displays:
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Name: TF
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Name: AprilTag Image
+      Image Topic: /apriltag_image
+      Queue Size: 10
+      Transport Hint: raw
