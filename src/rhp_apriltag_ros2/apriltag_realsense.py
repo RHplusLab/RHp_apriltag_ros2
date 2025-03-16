@@ -58,7 +58,7 @@ class AprilTagPublisher(Node):
         for r in results:
             # calculate pose and visualization
             pose, _, _ = self.detector.detection_pose(r, self.cam_params_rgb, self.tag_size)
-            draw_cube(overlay, self.cam_params_rgb, self.tag_size, pose)
+            draw_cube(overlay, self.cam_params_rgb, self.tag_size, pose, r.tag_id)
             
             # Make the AprilTag Message
             detection_msg = AprilTagDetection()

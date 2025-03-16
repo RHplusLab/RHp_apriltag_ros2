@@ -10,7 +10,7 @@ class CameraInfo:
         self.width = width
         self.height = height
         
-def draw_cube(overlay, camera_params, tag_size, pose, z_sign=1):
+def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
     """ 검출된 태그 위에 cube를 그린다. """
     # 객체 좌표 (8개 점)
     opoints = np.array([
@@ -47,8 +47,20 @@ def draw_cube(overlay, camera_params, tag_size, pose, z_sign=1):
     ipoints, _ = cv2.projectPoints(opoints, rvec, tvec, K, np.zeros(5))
     ipoints = [tuple(pt) for pt in np.round(ipoints).astype(int).reshape(-1, 2)]
     
+    color_tables = [
+        (255, 0, 0),    # red
+        (0, 255, 0),    # green
+        (0, 0, 255),    # blue
+        (255, 255, 0),  # yellow
+        (0, 255, 255),  # cyan
+        (255, 0, 255),  # magenta
+        (255, 165, 0),  # orange
+        (128, 0, 128),  # purple
+        (255, 192, 203),# pink
+        (165, 42, 42)   # brown
+    ]
     for i, j in edges:
-        cv2.line(overlay, ipoints[i], ipoints[j], (0, 255, 0), 1, 16)
+        cv2.line(overlay, ipoints[i], ipoints[j], color_tables[tag_id], 1, 16)
 
 def rotation_matrix_to_quaternion(R):
     """ 회전 행렬을 사원수로 변환 """
