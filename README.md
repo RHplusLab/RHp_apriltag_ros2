@@ -33,6 +33,12 @@ The RealSense version uses parameters defined in `src/utils.py` and accepts addi
 - `camera_offset` and `R_bc`: These represent the coordinate transformation from the desired base frame to the camera frame for detection. They are hardcoded in the code and can be modified directly at [utils.py](https://github.com/RHplusLab/RHp_apriltag_ros2/blob/5ebc2394878cdb3be747c73ce626e8dcfe42f266/src/rhp_apriltag_ros2/utils.py#L75)
 - `surface_offset`: This allows fine-tuning of the robot base in the x and y directions after transformation, specified as an argument during launch.
 
+To help visualize the relationship between these parameters and the system, the following diagram illustrates the coordinate transformation process:
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/bc97050e-2eb4-4521-b908-b738a90f80dd" width="50%">
+</div>
+
 Launch example:
 
 ```
