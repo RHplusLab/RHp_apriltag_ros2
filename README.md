@@ -6,6 +6,9 @@ RHp AprilTag detection and pose estimation.
 <img src="https://github.com/user-attachments/assets/6bdc9849-b60e-43c8-a0cf-62904ad4a5e3" width="550px" alt="Demo">
 </div>
 
+> [!NOTE]  
+> Check out the demo on YouTube: [Watch Here](https://www.youtube.com/watch?v=BMONxk_isWE)
+
 ## AprilTag Overview
 
 AprilTag is a visual fiducial system widely used for pose estimation and camera calibration. It consists of square black-and-white patterns (similar to 2D barcodes) that can be detected and identified in images. The system provides robust detection and computes the precise 3D position and orientation (pose) of each tag relative to the camera.
