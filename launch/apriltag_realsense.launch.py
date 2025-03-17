@@ -9,7 +9,7 @@ from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    # 상대 경로 설정 (패키지 내 config 디렉토리를 사용)
+    # Setting relative directory
     package_dir = get_package_share_directory('rhp_apriltag_ros2')
     rviz_config_path = os.path.join(package_dir, 'config', 'apriltag_rviz.rviz')
 
@@ -21,7 +21,7 @@ def generate_launch_description():
     return LaunchDescription([
 
         surface_offset_arg,
-        # AprilTag 검출 노드 실행
+        # Execute AprilTag realsense node
         Node(
             package='rhp_apriltag_ros2',
             executable='apriltag_realsense',
@@ -29,7 +29,7 @@ def generate_launch_description():
             output='screen',
             parameters=[{"surface_offset": LaunchConfiguration('surface_offset')}]
         ),
-        # RViz2 실행 (상대 경로 사용)
+        # Run viz2
         Node(
             package='rviz2',
             executable='rviz2',

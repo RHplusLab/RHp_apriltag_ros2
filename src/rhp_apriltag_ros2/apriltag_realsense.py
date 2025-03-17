@@ -25,7 +25,7 @@ class AprilTagPublisher(Node):
             self.surface_offset = parse_surface_offset(offset_str)
         except ValueError as e:
             self.get_logger().error(str(e))
-            self.surface_offset = (0.0, 0.0)  # 기본값 사용 
+            self.surface_offset = (0.0, 0.0) 
 
         self.apriltag_pub = self.create_publisher(AprilTagDetectionArray, '/apriltag_detections', 10)
         self.image_pub = self.create_publisher(Image, '/apriltag_image', 10)
