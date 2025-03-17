@@ -10,7 +10,7 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-from .utils import rotation_matrix_to_quaternion, draw_cube
+from .utils import *
 
 from rhp_apriltag_msgs.msg import AprilTagDetection, AprilTagDetectionArray
 from geometry_msgs.msg import Point, PoseWithCovarianceStamped, PoseWithCovariance, Pose, Quaternion
@@ -18,11 +18,20 @@ from geometry_msgs.msg import Point, PoseWithCovarianceStamped, PoseWithCovarian
 class AprilTagPublisher(Node):
     def __init__(self):
         super().__init__('apriltag_publisher')
+        self.declare_parameter("surface_offset", "0.0,0.0")
+        offset_str = self.get_parameter("surface_offset").get_parameter_value().string_value
+
+        try:
+            self.surface_offset = parse_surface_offset(offset_str)
+        except ValueError as e:
+            self.get_logger().error(str(e))
+            self.surface_offset = (0.0, 0.0) 
+
         self.apriltag_pub = self.create_publisher(AprilTagDetectionArray, '/apriltag_detections', 10)
         self.image_pub = self.create_publisher(Image, '/apriltag_image', 10)
         self.bridge = CvBridge()
         self.timer = self.create_timer(1.0/30, self.detect_apriltag)
-
+    
         # Camera Hyperparameter
         self.cam_params_rgb = (638.956, 638.394, 630.634, 367.101)
 
@@ -58,7 +67,7 @@ class AprilTagPublisher(Node):
         for r in results:
             # calculate pose and visualization
             pose, _, _ = self.detector.detection_pose(r, self.cam_params_rgb, self.tag_size)
-            draw_cube(overlay, self.cam_params_rgb, self.tag_size, pose)
+            draw_cube(overlay, self.cam_params_rgb, self.tag_size, pose, r.tag_id)
             
             # Make the AprilTag Message
             detection_msg = AprilTagDetection()
@@ -75,13 +84,14 @@ class AprilTagPublisher(Node):
                 detection_msg.corners[i].y = corner_y
                 detection_msg.corners[i].z = 0.0
             
-            position = pose[:3, 3]
-            rotation_matrix = pose[:3, :3]
+            robot_base_pose = construct_transform(pose, surface_offset=self.surface_offset)
+            position = robot_base_pose[:3, 3]
+            rotation_matrix = robot_base_pose[:3, :3]
             qx, qy, qz, qw = rotation_matrix_to_quaternion(rotation_matrix)
             
             pose_msg = PoseWithCovarianceStamped()
             pose_msg.header.stamp = now_
-            pose_msg.header.frame_id = "camera_link"
+            pose_msg.header.frame_id = "robot_base"
 
             pose_msg.pose.pose.position.x = float(position[0])
             pose_msg.pose.pose.position.y = float(position[1])
@@ -108,6 +118,14 @@ class AprilTagPublisher(Node):
         self.pipeline.stop()
         self.get_logger().info("End Stream..")
 
+def parse_surface_offset(offset_str):
+
+    try:
+        cleaned_str = offset_str.replace("(","").replace(")","").replace(" ","")
+        x_str, y_str = cleaned_str.split(",")
+        return float(x_str), float(y_str)
+    except Exception as e:
+        raise ValueError(f"Invalid format for surface_offset: {offset_str}. Expected format: 'x,y' or '(x,y)") from e
 
 def main():
     rclpy.init()
