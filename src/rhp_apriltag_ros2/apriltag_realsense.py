@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import argparse
 import numpy as np
 import cv2
 import apriltag
@@ -17,9 +16,16 @@ from rhp_apriltag_msgs.msg import AprilTagDetection, AprilTagDetectionArray
 from geometry_msgs.msg import Point, PoseWithCovarianceStamped, PoseWithCovariance, Pose, Quaternion
 
 class AprilTagPublisher(Node):
-    def __init__(self, surface_offset):
+    def __init__(self):
         super().__init__('apriltag_publisher')
-        self.surface_offset = surface_offset
+        self.declare_parameter("surface_offset", "0.0,0.0")
+        offset_str = self.get_parameter("surface_offset").get_parameter_value().string_value
+
+        try:
+            self.surface_offset = parse_surface_offset(offset_str)
+        except ValueError as e:
+            self.get_logger().error(str(e))
+            self.surface_offset = (0.0, 0.0)  # 기본값 사용 
 
         self.apriltag_pub = self.create_publisher(AprilTagDetectionArray, '/apriltag_detections', 10)
         self.image_pub = self.create_publisher(Image, '/apriltag_image', 10)
@@ -78,7 +84,7 @@ class AprilTagPublisher(Node):
                 detection_msg.corners[i].y = corner_y
                 detection_msg.corners[i].z = 0.0
             
-            robot_base_pose = construct_transform(pose)
+            robot_base_pose = construct_transform(pose, surface_offset=self.surface_offset)
             position = robot_base_pose[:3, 3]
             rotation_matrix = robot_base_pose[:3, :3]
             qx, qy, qz, qw = rotation_matrix_to_quaternion(rotation_matrix)
@@ -112,7 +118,7 @@ class AprilTagPublisher(Node):
         self.pipeline.stop()
         self.get_logger().info("End Stream..")
 
-def parse_surface_oofset(offset_str):
+def parse_surface_offset(offset_str):
 
     try:
         cleaned_str = offset_str.replace("(","").replace(")","").replace(" ","")
@@ -122,19 +128,8 @@ def parse_surface_oofset(offset_str):
         raise ValueError(f"Invalid format for surface_offset: {offset_str}. Expected format: 'x,y' or '(x,y)") from e
 
 def main():
-    parser = argparse.ArgumentParser(description="AprilTag Detection by RealSense")
-    parser.add_argument('--surface_offset', type=str, default="0.0,0.0", 
-                        help="Real robot base offset in format 'x,y' (e.g., '0.5,0.4' or '(0.8, 0.9)')")
-    
-    args = parser.parse_args()
-    try:
-        surface_offset = parse_surface_offset(args.surface_offset)
-    except ValueError as e:
-        print(e)
-        return
-    
     rclpy.init()
-    node = AprilTagPublisher(surface_offset=surface_offset)
+    node = AprilTagPublisher()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
