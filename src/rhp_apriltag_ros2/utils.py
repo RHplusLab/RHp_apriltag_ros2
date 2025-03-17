@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from scipy.spatial.transform import Rotation as R
 
 class CameraInfo:
     def __init__(self, fx, ppx, fy, ppy, width, height):
@@ -63,11 +64,31 @@ def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
         cv2.line(overlay, ipoints[i], ipoints[j], color_tables[tag_id], 1, 16)
 
 def rotation_matrix_to_quaternion(R):
-    """ 회전 행렬을 사원수로 변환 """
-    qw = np.sqrt(1.0 + R[0, 0] + R[1, 1] + R[2, 2]) / 2
-    qx = (R[2, 1] - R[1, 2]) / (4 * qw)
-    qy = (R[0, 2] - R[2, 0]) / (4 * qw)
-    qz = (R[1, 0] - R[0, 1]) / (4 * qw)
-    return qx, qy, qz, qw
+    """ Rotation Matrix -> Quaternion"""
+    quat = R.from_matrix(R).as_quat() 
+    return quat[0], quat[1], quat[2], quat[3]
 
+def construct_transform(T_co, surface_offset=(0.0,0.0)):
+    """ Change Coordination Tbo = Tbc * Tco (b:base, c:camera, o:object)   """
+    
+    # camera position based on robot base (Unit: m)
+    camera_offset = np.array([0.02473, 0.075, 0.4092])
 
+    angle_rad = np.arccos(0.8) # angle: (camera-z axis <-> robot base xyplane)
+    axis = np.array([1,0,0]) # based : x-axis 
+    R_bc = R.from_rotvec(angle_rad * axis).as_matrix() # rotation matrix
+
+    # robot_base -> camera (Tbc)
+    T_bc = np.eye(4)
+    T_bc[:3, :3] = R_bc
+    T_bc[:3, 3] = camera_offset
+
+    T_bo = T_bc @ T_co 
+
+    # if robot base move
+    T_surface = np.eye(4)
+    T_surface[:3, 3] = np.array([surface_offset[0], surface_offset[1], 0.0]) # consider (x,y) moving
+
+    T_bo = T_surface @ T_bo
+
+    return T_bo
