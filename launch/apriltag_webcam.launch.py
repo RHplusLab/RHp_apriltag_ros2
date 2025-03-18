@@ -9,14 +9,6 @@ def generate_launch_description():
             package='rhp_apriltag_ros2',
             executable='apriltag_webcam',
             name='apriltag_webcam_node'
-        ),
-
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            output='screen',
-            arguments=['-d', rviz_config_path]
         )
 
 
