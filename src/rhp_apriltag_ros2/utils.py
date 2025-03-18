@@ -60,6 +60,11 @@ def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
         (255, 192, 203),# pink
         (165, 42, 42)   # brown
     ]
+
+    if tag_id >= len(color_tables) or tag_id < 0:
+        print(f"Invalid tag_id: {tag_id}, skipping draw_cube()")
+        return 
+
     for i, j in edges:
         cv2.line(overlay, ipoints[i], ipoints[j], color_tables[tag_id], 1, 16)
 
