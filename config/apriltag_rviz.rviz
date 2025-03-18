@@ -9,9 +9,9 @@ Visualization Manager:
       Transport Hint: raw
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: camera_link  # 필요한 프레임으로 변경
+    Fixed Frame: camera_link
     Frame Rate: 30
   Views:
     Current:
-      Class: rviz_default_plugins/TopDownOrtho  # XY 평면 보기 추천
+      Class: rviz_default_plugins/TopDownOrtho
       Name: Top Down View
