@@ -65,8 +65,11 @@ def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
 
 def rotation_matrix_to_quaternion(R):
     """ Rotation Matrix -> Quaternion"""
-    quat = R.from_matrix(R).as_quat() 
-    return quat[0], quat[1], quat[2], quat[3]
+    qw = np.sqrt(1.0 + R[0, 0] + R[1, 1] + R[2, 2]) / 2
+    qx = (R[2, 1] - R[1, 2]) / (4 * qw)
+    qy = (R[0, 2] - R[2, 0]) / (4 * qw)
+    qz = (R[1, 0] - R[0, 1]) / (4 * qw)
+    return qx, qy, qz, qw
 
 def construct_transform(T_co, surface_offset=(0.0,0.0)):
     """ Change Coordination Tbo = Tbc * Tco (b:base, c:camera, o:object)   """
