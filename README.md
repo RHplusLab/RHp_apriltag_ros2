@@ -33,8 +33,11 @@ As shown in the illustration above, AprilTag detections are returned as an array
 
 ### RealSense Version
 The RealSense version uses parameters defined in `src/utils.py` and accepts additional arguments:
-- `camera_offset` and `R_bc`: These represent the coordinate transformation from the desired base frame to the camera frame for detection. They are hardcoded in the code and can be modified directly at [utils.py](https://github.com/RHplusLab/RHp_apriltag_ros2/blob/5ebc2394878cdb3be747c73ce626e8dcfe42f266/src/rhp_apriltag_ros2/utils.py#L75)
+- `camera_offset` and `R_bc`: These represent the coordinate transformation from the desired base frame to the camera frame for detection. They are hardcoded in the code and can be modified directly at [utils.py](https://github.com/RHplusLab/RHp_apriltag_ros2/blob/733f90c5955b7042bafa38364e85f1ebb754c1ac/src/rhp_apriltag_ros2/utils.py#L130)
 - `surface_offset`: This allows fine-tuning of the robot base in the x and y directions after transformation, specified as an argument during launch.
+  
+To enhance detection accuracy, a calibration step has been implemented by intersecting ground truth (g.t) coordinates with detected values. This process refines the transformation and is implemented in the code as shown below [see line 167 in utils.py](https://github.com/RHplusLab/RHp_apriltag_ros2/blob/733f90c5955b7042bafa38364e85f1ebb754c1ac/src/rhp_apriltag_ros2/utils.py#L167):
+
 
 To help visualize the relationship between these parameters and the system, the following diagram illustrates the coordinate transformation process:
 
@@ -45,13 +48,13 @@ To help visualize the relationship between these parameters and the system, the 
 Launch example:
 
 ```
-ros2 launch rhp_apriltag_ros2 launch/apriltag_realsense.launch.py  surface_offset:=(5.0,6.0)
+ros2 launch rhp_apriltag_ros2 apriltag_realsense.launch.py  surface_offset:=(5.0,6.0)
 ```
 
 ### Webcam Version
 For webcam-based detection, use the following launch command:
 ```
-ros2 launch rhp_apriltag_ros2 launch/apriltag_webcam.launch.py
+ros2 launch rhp_apriltag_ros2 apriltag_webcam.launch.py
 ```
 
 
