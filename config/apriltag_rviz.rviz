@@ -5,6 +5,7 @@ Visualization Manager:
       Name: AprilTag Image
       Topic:
         Value: /apriltag_image
+      Queue Size: 10
       Transport Hint: raw
   Global Options:
     Background Color: 48; 48; 48
