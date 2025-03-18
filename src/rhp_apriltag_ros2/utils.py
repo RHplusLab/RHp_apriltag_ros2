@@ -12,8 +12,8 @@ class CameraInfo:
         self.height = height
         
 def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
-    """ 검출된 태그 위에 cube를 그린다. """
-    # 객체 좌표 (8개 점)
+    """ Draw Cube above detected apriltag """
+
     opoints = np.array([
         -1, -1, 0,          # 아래 네 점
         1, -1, 0,
@@ -25,7 +25,6 @@ def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
         -1,  1, -2*z_sign,
     ]).reshape(-1, 1, 3) * 0.5 * tag_size
 
-    # 점들을 잇는 선(edge) 인덱스
     edges = np.array([
         0, 1,
         1, 2,
@@ -160,7 +159,7 @@ def construct_transform(T_co, surface_offset=(0.0,0.0)):
     T_bo = T_surface @ T_bo
 
     # -----------------------------------------------------
-    # (8) Calibration step using 4 points:
+    # (8) Calibration step using 4-N points:
     #     We want to align "result_points" to "ground_truth_points"
     #     using the Kabsch algorithm.
     # -----------------------------------------------------
