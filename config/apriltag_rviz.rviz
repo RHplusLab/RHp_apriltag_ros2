@@ -1,11 +1,16 @@
 Visualization Manager:
   Displays:
-    - Class: rviz_default_plugins/TF
-      Enabled: true
-      Name: TF
     - Class: rviz_default_plugins/Image
       Enabled: true
       Name: AprilTag Image
-      Image Topic: /apriltag_image
-      Queue Size: 10
+      Topic:
+        Value: /apriltag_image
       Transport Hint: raw
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: camera_link  # 필요한 프레임으로 변경
+    Frame Rate: 30
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho  # XY 평면 보기 추천
+      Name: Top Down View
