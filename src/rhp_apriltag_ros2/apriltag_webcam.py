@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import apriltag
 import copy
+import time
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
@@ -32,7 +33,8 @@ class AprilTagPublisher(Node):
         self.timer = self.create_timer(1.0/30, self.detect_apriltag)
     
         # Camera Hyperparameter
-        self.cam_params_rgb = (638.956, 638.394, 630.634, 367.101)
+        # fx, fy estimated as typical HD webcam focal lengths; cx, cy set to image center (1280x720)
+        self.cam_params_rgb = (1000.0, 1000.0, 640.0, 360.0)
 
         # Initialize AprilTag Detector
         options = apriltag.DetectorOptions(families="tag25h9")
@@ -40,16 +42,25 @@ class AprilTagPublisher(Node):
         self.tag_size = 0.04
 
         # Webcam Setting
-        self.cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-        if not self.cap.isOpened():
-            self.get_logger().error("Cannot open camera")
-            raise RuntimeError("Cannot open camera")
-        self.get_logger().info("Webcam streaming started...")
+        while True:
+            cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+            if cap.isOpened():
+                self.cap = cap
+                break
+            cap.release()
+            self.get_logger().warn("Cannot open camera. Retrying in 5 seconds...")
+            time.sleep(5)
+
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
+
+        self.get_logger().info("Webcam streaming started.")
 
     def detect_apriltag(self):
         ret, img_color = self.cap.read()
         if not ret:
-            self.get_logger().error("Cannot receive frame")
+            self.get_logger().error("Cannot receive frame.")
             return
 
         img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
