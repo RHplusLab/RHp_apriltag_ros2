@@ -79,12 +79,6 @@ class AprilTagPublisher(Node):
             rotation_matrix = pose[:3, :3]
 
             qx, qy, qz, qw = rotation_matrix_to_quaternion(rotation_matrix)
-            """
-            from scipy.spatial.transform import Rotation
-            r = Rotation.from_matrix(rotation_matrix)
-            quat = r.as_quat()
-            qx, qy, qz, qw = quat
-            """
 
             pose_msg = PoseWithCovarianceStamped()
             pose_msg.header.stamp = now_
