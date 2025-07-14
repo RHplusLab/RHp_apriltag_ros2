@@ -10,7 +10,7 @@ class CameraInfo:
         self.ppy = ppy
         self.width = width
         self.height = height
-        
+
 def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
     """ Draw Cube above detected apriltag """
 
@@ -35,18 +35,18 @@ def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
         2, 6,
         3, 7,
         4, 5,
-        5, 6, 
+        5, 6,
         6, 7,
         7, 4
     ]).reshape(-1, 2)
-    
+
     fx, fy, cx, cy = camera_params
     K = np.array([fx, 0, cx, 0, fy, cy, 0, 0, 1]).reshape(3, 3)
     rvec, _ = cv2.Rodrigues(pose[:3, :3])
     tvec = pose[:3, 3]
     ipoints, _ = cv2.projectPoints(opoints, rvec, tvec, K, np.zeros(5))
     ipoints = [tuple(pt) for pt in np.round(ipoints).astype(int).reshape(-1, 2)]
-    
+
     color_tables = [
         (255, 0, 0),    # red
         (0, 255, 0),    # green
@@ -62,7 +62,7 @@ def draw_cube(overlay, camera_params, tag_size, pose, tag_id, z_sign=1):
 
     if tag_id >= len(color_tables) or tag_id < 0:
         print(f"Invalid tag_id: {tag_id}, skipping draw_cube()")
-        return  
+        return
 
     for i, j in edges:
         cv2.line(overlay, ipoints[i], ipoints[j], color_tables[tag_id], 1, 16)
@@ -128,21 +128,21 @@ def calibrate_rigid_3d(pts_src, pts_tgt):
 
 def construct_transform(T_co, surface_offset=(0.0,0.0)):
     """ Change Coordination Tbo = Tbc * Tco (b:base, c:camera, o:object)   """
-    
+
     # camera position based on robot base (Unit: m)
-    camera_offset = np.array([0.02473, 0.075, 0.4092])
+    camera_offset = np.array([0.507, 0.013, 0.383])
 
     R_flip_xz = np.array([
         [1, 0, 0], # x -> x
-        [0, -1, 0], # y -> -y 
+        [0, -1, 0], # y -> -y
         [0, 0, -1], # z -> -z
     ], dtype=float)
 
-    angle_rad = np.arccos(0.8) # angle: (camera-z axis <-> robot base z-axis)
-    axis = np.array([0,1,0]) # based : y-axis (pitch rotation) 
+    angle_rad = np.arccos(0.853131) # angle: (camera-z axis <-> robot base z-axis)
+    axis = np.array([0,1,0]) # based : y-axis (pitch rotation)
     R_tilt = R.from_rotvec(angle_rad * axis).as_matrix() # rotation matrix
 
-    # flip_xz -> tilt 
+    # flip_xz -> tilt
     R_bc = R_tilt @ R_flip_xz
 
     # robot_base -> camera (Tbc)
@@ -150,7 +150,7 @@ def construct_transform(T_co, surface_offset=(0.0,0.0)):
     T_bc[:3, :3] = R_bc
     T_bc[:3, 3] = camera_offset
 
-    T_bo = T_bc @ T_co 
+    T_bo = T_bc @ T_co
 
     # if robot base move
     T_surface = np.eye(4)
@@ -163,24 +163,22 @@ def construct_transform(T_co, surface_offset=(0.0,0.0)):
     #     We want to align "result_points" to "ground_truth_points"
     #     using the Kabsch algorithm.
     # -----------------------------------------------------
-    CALIB_SRC = np.array([
-        [-0.19,  -0.09,  0.02],   
-        [-0.24,  -0.029, -0.06],  
-        [-0.15,  -0.03,  -0.12],  
-        [-0.318, -0.032,  0.004], 
-        [-0.193, 0.0604, -0.17],
-        [-0.1746, 0.0858, -0.142],
-        [-0.29687,  0.0620, 0.03886],
+    CALIB_SRC = np.array([    
+    [0.243, 0.098, -0.035],
+    [0.259, 0.0546, -0.010],
+    [0.288, 0.099, -0.064],
+    [0.229, 0.144, -0.064],
+    [0.197, 0.101, -0.0143]
     ])
+
     CALIB_TGT = np.array([
-        [0.3,   0.0,   0.035],  
-        [0.4,   0.0,   0.035],  
-        [0.4,  -0.1,   0.035],  
-        [0.4,   0.1,   0.035], 
-        [0.5,  -0.1,   0.075], 
-        [0.5,  -0.1,   0.108],
-        [0.4,   0.1,   0.138]
+    [0.15 ,0, 0.04],
+    [0.20 ,0 ,0.04],
+    [0.15, 0.05, 0.04],
+    [0.10 , 0, 0.04],
+    [0.15, -0.05, 0.04]
     ])
+
 
     T_calib = calibrate_rigid_3d(CALIB_SRC, CALIB_TGT)
 

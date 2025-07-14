@@ -25,25 +25,25 @@ class AprilTagPublisher(Node):
             self.surface_offset = parse_surface_offset(offset_str)
         except ValueError as e:
             self.get_logger().error(str(e))
-            self.surface_offset = (0.0, 0.0) 
+            self.surface_offset = (0.0, 0.0)
 
         self.apriltag_pub = self.create_publisher(AprilTagDetectionArray, '/apriltag_detections', 10)
         self.image_pub = self.create_publisher(Image, '/apriltag_image', 10)
         self.bridge = CvBridge()
         self.timer = self.create_timer(1.0/30, self.detect_apriltag)
-    
+
         # Camera Hyperparameter
         # fx, fy estimated as typical HD webcam focal lengths; cx, cy set to image center (1280x720)
-        self.cam_params_rgb = (1000.0, 1000.0, 640.0, 360.0)
+        self.cam_params_rgb = (1422.842516, 1428.156099, 951.567139, 547.724641)
 
         # Initialize AprilTag Detector
         options = apriltag.DetectorOptions(families="tag25h9")
         self.detector = apriltag.Detector(options)
-        self.tag_size = 0.04
+        self.tag_size = 0.02828
 
         # Webcam Setting
         while True:
-            cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+            cap = cv2.VideoCapture(4, cv2.CAP_V4L2)
             if cap.isOpened():
                 self.cap = cap
                 break
@@ -51,8 +51,8 @@ class AprilTagPublisher(Node):
             self.get_logger().warn("Cannot open camera. Retrying in 5 seconds...")
             time.sleep(5)
 
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
 
         self.get_logger().info("Webcam streaming started.")
@@ -77,7 +77,7 @@ class AprilTagPublisher(Node):
             # calculate pose and visualization
             pose, _, _ = self.detector.detection_pose(r, self.cam_params_rgb, self.tag_size)
             draw_cube(overlay, self.cam_params_rgb, self.tag_size, pose, r.tag_id)
-            
+
             # Make the AprilTag Message
             detection_msg = AprilTagDetection()
             detection_msg.family =  str(r.tag_family, 'utf-8')
@@ -92,12 +92,12 @@ class AprilTagPublisher(Node):
                 detection_msg.corners[i].x = corner_x
                 detection_msg.corners[i].y = corner_y
                 detection_msg.corners[i].z = 0.0
-            
+
             robot_base_pose = construct_transform(pose, surface_offset=self.surface_offset)
             position = robot_base_pose[:3, 3]
             rotation_matrix = robot_base_pose[:3, :3]
             qx, qy, qz, qw = rotation_matrix_to_quaternion(rotation_matrix)
-            
+
             pose_msg = PoseWithCovarianceStamped()
             pose_msg.header.stamp = now_
             pose_msg.header.frame_id = "robot_base"
@@ -118,11 +118,11 @@ class AprilTagPublisher(Node):
             detection_array_msg.detections.append(detection_msg)
 
         self.apriltag_pub.publish(detection_array_msg)
-        
+
         # Visualize
         img_msg = self.bridge.cv2_to_imgmsg(overlay, encoding='bgr8')
         self.image_pub.publish(img_msg)
-    
+
     def shutdown(self):
         self.cap.release()
         self.get_logger().info("Webcam streaming stopped.")
